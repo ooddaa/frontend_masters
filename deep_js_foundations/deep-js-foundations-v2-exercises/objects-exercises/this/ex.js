@@ -1,4 +1,17 @@
-var deepJS = defineWorkshop();
+var deepJS = {
+  currentEnrollment: [],
+  studentRecords: [],
+  addStudent,
+  enrollStudent,
+  enrollPaidStudents,
+  printCurrentEnrollment,
+  printRecords,
+  getStudentId,
+  getStudentFromId,
+  paidStudentsToEnroll,
+  remindUnpaidStudents,
+  remindUnpaid
+};
 
 deepJS.addStudent(311,"Frank",/*paid=*/true);
 deepJS.addStudent(410,"Suzy",/*paid=*/true);
@@ -14,10 +27,11 @@ deepJS.enrollStudent(410);
 deepJS.enrollStudent(105);
 deepJS.enrollStudent(664);
 deepJS.enrollStudent(375);
-
+//
 deepJS.printCurrentEnrollment();
 console.log("----");
 deepJS.enrollPaidStudents();
+deepJS.printCurrentEnrollment();
 console.log("----");
 deepJS.remindUnpaidStudents();
 
@@ -40,99 +54,82 @@ deepJS.remindUnpaidStudents();
 */
 
 
-// ********************************
+function addStudent(id,name,paid) {
+  this.studentRecords.push({ id, name, paid, });
+}
 
-function defineWorkshop() {
-	var currentEnrollment = [];
-	var studentRecords = [];
+function enrollStudent(id) {
+  if (!this.currentEnrollment.includes(id)) {
+    this.currentEnrollment.push(id);
+  }
+}
 
-	var publicAPI = {
-		addStudent,
-		enrollStudent,
-		printCurrentEnrollment,
-		enrollPaidStudents,
-		remindUnpaidStudents,
-	};
-	return publicAPI;
+function printCurrentEnrollment() {
+  this.printRecords(this.currentEnrollment);
+}
 
+function enrollPaidStudents() {
+  this.currentEnrollment = this.paidStudentsToEnroll();
+}
 
-	// ********************************
+function remindUnpaidStudents() {
+  this.remindUnpaid(this.currentEnrollment);
+}
 
-	function addStudent(id,name,paid) {
-		studentRecords.push({ id, name, paid, });
-	}
+function getStudentFromId(studentId) {
+  return this.studentRecords.find(matchId);
 
-	function enrollStudent(id) {
-		if (!currentEnrollment.includes(id)) {
-			currentEnrollment.push(id);
-		}
-	}
+  function matchId(record) {
+    return (record.id == studentId);
+  }
+}
 
-	function printCurrentEnrollment() {
-		printRecords(currentEnrollment);
-	}
+function printRecords(recordIds) {
+  var records = recordIds.map(getStudentFromId.bind(this));
+  // var records = recordIds.map(this.getStudentFromId.bind(this));
 
-	function enrollPaidStudents() {
-		currentEnrollment = paidStudentsToEnroll();
-		printCurrentEnrollment();
-	}
+  records.sort(sortByNameAsc);
+  // records.sort(this.sortByNameAsc);
 
-	function remindUnpaidStudents() {
-		remindUnpaid(currentEnrollment);
-	}
+  records.forEach(printRecord);
+  // records.forEach(this.printRecord);
+}
 
-	function getStudentFromId(studentId) {
-		return studentRecords.find(matchId);
+function sortByNameAsc(record1,record2){
+  if (record1.name < record2.name) return -1;
+  else if (record1.name > record2.name) return 1;
+  else return 0;
+}
 
-		// *************************
+function printRecord(record) {
+  console.log(`${record.name} (${record.id}): ${record.paid ? "Paid" : "Not Paid"}`);
+}
 
-		function matchId(record) {
-			return (record.id == studentId);
-		}
-	}
+function paidStudentsToEnroll() {
+  var recordsToEnroll = this.studentRecords.filter(needToEnroll.bind(this));
 
-	function printRecords(recordIds) {
-		var records = recordIds.map(getStudentFromId);
+  var idsToEnroll = recordsToEnroll.map(getStudentId);
+  // var idsToEnroll = recordsToEnroll.map(this.getStudentId);
 
-		records.sort(sortByNameAsc);
+  return [ ...this.currentEnrollment, ...idsToEnroll ];
+}
 
-		records.forEach(printRecord);
-	}
+function needToEnroll(record) {
+  return (record.paid && !this.currentEnrollment.includes(record.id));
+}
 
-	function sortByNameAsc(record1,record2){
-		if (record1.name < record2.name) return -1;
-		else if (record1.name > record2.name) return 1;
-		else return 0;
-	}
+function getStudentId(record) {
+  return record.id;
+}
 
-	function printRecord(record) {
-		console.log(`${record.name} (${record.id}): ${record.paid ? "Paid" : "Not Paid"}`);
-	}
+function remindUnpaid(recordIds) {
+  var unpaidIds = recordIds.filter(notYetPaid.bind(this));
+  // var unpaidIds = recordIds.filter(this.notYetPaid.bind(this));
 
-	function paidStudentsToEnroll() {
-		var recordsToEnroll = studentRecords.filter(needToEnroll);
+  this.printRecords(unpaidIds);
+}
 
-		var idsToEnroll = recordsToEnroll.map(getStudentId);
-
-		return [ ...currentEnrollment, ...idsToEnroll ];
-	}
-
-	function needToEnroll(record) {
-		return (record.paid && !currentEnrollment.includes(record.id));
-	}
-
-	function getStudentId(record) {
-		return record.id;
-	}
-
-	function remindUnpaid(recordIds) {
-		var unpaidIds = recordIds.filter(notYetPaid);
-
-		printRecords(unpaidIds);
-	}
-
-	function notYetPaid(studentId) {
-		var record = getStudentFromId(studentId);
-		return !record.paid;
-	}
+function notYetPaid(studentId) {
+  var record = this.getStudentFromId(studentId);
+  return !record.paid;
 }
