@@ -74,7 +74,7 @@ function defineWorkshop() {
 
 	function enrollPaidStudents() {
 		currentEnrollment = paidStudentsToEnroll();
-		printCurrentEnrollment();
+		printCurrentEnrollment(); // ?? shouldn't print 
 	}
 
 	function remindUnpaidStudents() {
